@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const UserModel = require('../models/User').UserModel;
+const checkToken = require('../middleware/checkToken');
+
+// router.use(checkToken);
 
 /* GET users listing. */
-router.get('/', function (req, res, next) {
+router.get('/', checkToken, function (req, res, next) {
   res.send('respond with a resource');
 });
 
