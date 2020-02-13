@@ -7,25 +7,39 @@ const LocalStrategy = require('passport-local').Strategy;
 
 module.exports = function (passport) {
     // Facebook Strategy
-    // passport.use(new FacebookStrategy({
-    //     clientID: 577997806089812,
-    //     clientSecret: 'e8db94e14aac039db5b49736481e7e7b',
-    //     callbackURL: "https://33e0e7c2.ngrok.io/auth/facebook/callback"
-    // },
-    //     function (accessToken, refreshToken, profile, done) {
-    //         console.log(accessToken);
+    passport.use(new FacebookStrategy({
+        clientID: 577997806089812,
+        clientSecret: 'e8db94e14aac039db5b49736481e7e7b',
+        callbackURL: "https://33e0e7c2.ngrok.io/auth/facebook/callback"
+    },
+        async function (accessToken, refreshToken, profile, done) {
+            console.log(accessToken);
 
-    //         // console.log('refeshToken: ', refreshToken);
-    //         console.log(profile);
-    //         const data = {
-    //             accessToken, profile
-    //         }
-    //         done(null, data);
-    //         // User.findOrCreate({ facebookId: profile.id }, function (err, user) {
-    //         //     return cb(err, user);
-    //         // });
-    //     }
-    // ));
+            // console.log('refeshToken: ', refreshToken);
+            console.log(profile);
+            console.log(typeof profile.id);
+            // const data = {
+            //     accessToken, profile
+            // }
+            // done(null, data);
+            try {
+                const user = await UserModel.findOne({ facebookId: profile.id });
+                console.log('user fb_id: ', user);
+                if (!user) {
+                    done(null, false);
+                }
+
+                done(null, user.facebookId)
+            } catch (error) {
+                done(error);
+            }
+
+
+            // UserModel.find({ facebookId: profile.id }, function (err, user) {
+            //     return done(err, user);
+            // });
+        }
+    ));
 
 
     // local strategy

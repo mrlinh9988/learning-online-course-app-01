@@ -5,6 +5,7 @@ var Schema = mongoose.Schema;
 var UserSchema = new Schema({
     username: String,
     password: String,
+    facebookId: String,
     type: {
         type: Number,
         default: 3

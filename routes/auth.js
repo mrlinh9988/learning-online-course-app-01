@@ -23,13 +23,17 @@ router.post('/login', function (req, res, next) {
                 res.send(err);
             }
 
-            const token = jwt.sign(user, 'your_jwt_secret');
-            console.log(token);
+            const payload = { 
+                _id: user._id,
+                username: user.username
+            }
+
+            const token = jwt.sign(payload, 'your_jwt_secret');
+            // console.log(token);
 
             return res.json({ user, token });
         });
-    })
-        (req, res);
+    })(req, res);
 
 });
 
