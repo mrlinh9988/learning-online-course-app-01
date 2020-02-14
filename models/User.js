@@ -1,11 +1,15 @@
 const mongoose = require('../configs/dbConnect');
 var Schema = mongoose.Schema;
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 // User Schema
 var UserSchema = new Schema({
     username: String,
     password: String,
-    facebookId: String,
+    facebookId: {
+        type: String
+    },
     type: {
         type: Number,
         default: 3
@@ -27,6 +31,17 @@ var UserSchema = new Schema({
 }, {
     collection: 'user'
 });
+
+UserSchema.methods.generateHash = async function (password) {
+    // return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+    const salt = await bcrypt.genSalt(saltRounds);
+    return await bcrypt.hash(password, salt);
+};
+// kiểm tra password có hợp lệ không
+UserSchema.methods.validPassword = function (password) {
+    return bcrypt.compareSync(password, this.local.password);
+};
+
 
 // Course Schema
 var CourseSchema = new Schema({
