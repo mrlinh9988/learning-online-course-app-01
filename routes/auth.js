@@ -5,7 +5,7 @@ const passport = require('passport');
 const clientRedis = require('../configs/clientRedis');
 const util = require('util');
 clientRedis.get = util.promisify(clientRedis.get);
-const UserModel = require('../models/User').UserModel;
+const UserModel = require('../models/User');
 
 
 // Local callback
