@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const session = require('express-session');
 const passport = require('passport');
+const jwt = require('jsonwebtoken');
 
 
 
@@ -41,28 +42,11 @@ app.use('/users', usersRouter);
 app.use('/auth', auth);
 
 
-app.get('/info', (req, res, next) => {
-  console.log(req.session);
-  res.json(req.session.passport);
-})
+app.get('/token', async (req, res, next) => {
+  const token = await jwt.sign(req.session.passport, 'userId');
+  res.json({ token });
+});
 
-// app.get('/auth/facebook',
-//   passport.authenticate('facebook', { scope: ['user_birthday', 'user_friends', 'public_profile', 'email', 'user_age_range', 'user_gender', 'user_hometown', 'user_likes', 'user_link', 'user_location', 'user_photos', 'user_posts', 'user_status', 'user_tagged_places', 'user_videos'] }));
-
-// // app.get('/auth/facebook/callback',
-// //   passport.authenticate('facebook', { failureRedirect: '/login' }),
-// //   function (req, res) {
-
-// //     res.redirect('/info');
-// //   });
-
-// app.get('/auth/facebook/callback', (req, res, next) => {
-//   passport.authenticate('facebook', (err, user, next) => {
-//     console.log(user);
-//     clientRedis.set('userId', user);
-//     res.json({ userId: user });
-//   })(req, res, next);
-// });
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

@@ -11,7 +11,19 @@ clientRedis.get = util.promisify(clientRedis.get);
 // Local callback
 
 // Signup
-router.post('/signup', (req, res, next) => {
+router.post('/signup', async (req, res, next) => {
+    // const { username, password } = req.body;
+    passport.authenticate('local-signup', { session: false }, (err, user) => {
+        if (err) throw err;
+        console.log('user: ', user._id);
+        const payload = {
+            _id: user._id
+        }
+        const verfyToken = jwt.sign(payload, 'verify_user');
+        res.json({
+            verfyToken
+        });
+    })(req, res, next);
 
 });
 
@@ -99,12 +111,17 @@ router.get('/logout', async function (req, res) {
 router.get('/facebook',
     passport.authenticate('facebook', { scope: ['user_birthday', 'user_friends', 'public_profile', 'email', 'user_age_range', 'user_gender', 'user_hometown', 'user_likes', 'user_link', 'user_location', 'user_photos', 'user_posts', 'user_status', 'user_tagged_places', 'user_videos'] }));
 
-router.get('/facebook/callback', (req, res, next) => {
-    passport.authenticate('facebook', (err, user, next) => {
-        console.log('userid: ', user);
-        clientRedis.set('userId', user);
-        res.json({ userId: user });
-    })(req, res, next);
-});
+// router.get('/facebook/callback', (req, res, next) => {
+//     passport.authenticate('facebook', async (err, user, next) => {
+//         if (err) throw err;
+//         console.log('userid: ', user);
+//         const token = await jwt.sign({ user }, 'userId');
+//         // clientRedis.set('userId', user);
+//         res.json({ token });
+//     })(req, res, next);
+// });
+
+router.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/auth/facebook', successRedirect: '/token' }));
+
 
 module.exports = router;

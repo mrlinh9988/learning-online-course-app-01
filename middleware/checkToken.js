@@ -7,23 +7,23 @@ clientRedis.get = util.promisify(clientRedis.get);
 
 module.exports = async function (req, res, next) {
     try {
-        // check ID facebook
-        const userId = await clientRedis.get('userId');
-        // console.log(userId);
+        // // check ID facebook
+        // const userId = await clientRedis.get('userId');
+        // // console.log(userId);
 
-        if (userId) {
-            console.log('da dang nhap bang FB');
-            return next();
-        }
-        // console.log('chua dang nhap bang FB');
+        // if (userId) {
+        //     console.log('da dang nhap bang FB');
+        //     return next();
+        // }
+        // // console.log('chua dang nhap bang FB');
 
 
         // Check header token
-        if (!req.headers.authorization) {
-            return res.json({
-                error: 'You need to login!'
-            });
-        }
+        // if (!req.headers.authorization) {
+        //     return res.json({
+        //         error: 'You need to login!'
+        //     });
+        // }
 
         const token = req.headers.authorization.split(' ')[1];
 
@@ -62,6 +62,8 @@ module.exports = async function (req, res, next) {
         // res.json(user)
         // next()
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).res.json({
+            error: 'You need to login!'
+        });
     }
 }

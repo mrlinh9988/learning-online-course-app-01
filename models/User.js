@@ -5,10 +5,12 @@ const saltRounds = 10;
 
 // User Schema
 var UserSchema = new Schema({
-    username: String,
-    password: String,
-    facebookId: {
-        type: String
+    local: {
+        username: String,
+        password: String
+    },
+    facebook: {
+        id: String
     },
     type: {
         type: Number,
