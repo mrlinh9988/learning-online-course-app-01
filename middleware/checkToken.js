@@ -9,7 +9,7 @@ module.exports = async function (req, res, next) {
     try {
         // check ID facebook
         const userId = await clientRedis.get('userId');
-        // console.log(userId);
+        console.log(userId);
 
         if (userId) {
             console.log('da dang nhap bang FB');

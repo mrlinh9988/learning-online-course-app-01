@@ -1,17 +1,29 @@
 const express = require('express');
 const router = express.Router();
-
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const clientRedis = require('../configs/clientRedis');
 const util = require('util');
 clientRedis.get = util.promisify(clientRedis.get);
+const UserModel = require('../models/User').UserModel;
 
 
 // Local callback
 
 // Signup
-router.post('/signup', (req, res, next) => {
+router.post('/signup', async (req, res, next) => {
+    // const { username, password } = req.body;
+    passport.authenticate('local-signup', { session: false }, (err, user) => {
+        if (err) throw err;
+        console.log('user: ', user._id);
+        const payload = {
+            _id: user._id
+        }
+        const verfyToken = jwt.sign(payload, 'verify_user');
+        res.json({
+            verfyToken
+        });
+    })(req, res, next);
 
 });
 
@@ -43,7 +55,7 @@ router.post('/login', function (req, res, next) {
             const token = jwt.sign(payload, 'your_jwt_secret');
             // console.log(token);
 
-            return res.json({ user, token });
+            return res.json({ token });
         });
     })(req, res);
 
@@ -52,6 +64,7 @@ router.post('/login', function (req, res, next) {
 // Logout
 router.get('/logout', async function (req, res) {
     req.logout();
+    const { userId } = req.query;
     try {
 
         // Logout facebook
@@ -61,7 +74,7 @@ router.get('/logout', async function (req, res) {
             clientRedis.del('userId');
             return res.json({
                 message: 'Log out fb'
-            })
+            });
         }
 
         // Log out 
@@ -101,9 +114,12 @@ router.get('/facebook',
 
 router.get('/facebook/callback', (req, res, next) => {
     passport.authenticate('facebook', (err, user, next) => {
-        console.log('userid: ', user);
-        clientRedis.set('userId', user);
-        res.json({ userId: user });
+        console.log('userid: ', typeof user.facebook.id);
+        clientRedis.set('userId', user.facebook.id);
+        // res.json({ userId: user.facebook.id });
+        res.json({
+            message: 'Login success'
+        });
     })(req, res, next);
 });
 
