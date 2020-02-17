@@ -1,11 +1,11 @@
 
 var FacebookStrategy = require('passport-facebook').Strategy;
-var UserModel = require('../models/User').UserModel;
-const passport = require('passport');
+var UserModel = require('../models/User');
 const LocalStrategy = require('passport-local').Strategy;
 
 
 module.exports = function (passport) {
+
     // Facebook Strategy
     passport.use(new FacebookStrategy({
         clientID: 577997806089812,
@@ -15,17 +15,28 @@ module.exports = function (passport) {
         async function (accessToken, refreshToken, profile, done) {
 
             try {
-                const user = await UserModel.findOne({ facebookId: profile.id });
-                console.log('user fb_id: ', user);
+                const user = await UserModel.findOne({ 'facebook.id': profile.id });
+                // console.log('user fb_id: ', user);
                 if (user) {
                     done(null, profile.id);
                 } else {
+                    console.log('khong co user fb');
                     const newUser = new UserModel();
                     newUser.facebook.id = profile.id;
-                    newUser.save();
-                    done(null, newUser.facebook.id)
+                    newUser.facebook.name = profile.displayName;
+                    // console.log(newUser.facebook.id);
+
+                    // lưu vào db
+                    newUser.save(function (err) {
+                        if (err)
+                            throw err;
+                        // nếu thành công, trả lại user
+                        console.log('new user: ', newUser);
+                        return done(null, newUser.facebook.id);
+                    });
                 }
 
+                // done(null, user.facebookId)
             } catch (error) {
                 done(error);
             }
@@ -49,16 +60,16 @@ module.exports = function (passport) {
     });
 
 
-    // local strategy
+    // LOGIN LOCAL
     passport.use(new LocalStrategy({
         usernameField: 'username',
         passwordField: 'password'
     },
-        function (username, password, cb) {
+        async function (username, password, cb) {
             console.log(username);
             console.log(password);
             //this one is typically a DB call. Assume that the returned user object is pre-formatted and ready for storing in JWT
-            UserModel.findOne({ username, password }).lean()
+            UserModel.findOne({ 'local.username': username, 'local.password': password }).lean()
                 .then(user => {
                     console.log('user find: ', user);
                     if (!user) {
@@ -72,43 +83,35 @@ module.exports = function (passport) {
     ));
 
 
-    // Sign up
+    // SIGNUP LOCAL
     passport.use('local-signup', new LocalStrategy({
-        // mặc định local strategy sử dụng username và password,
-        // chúng ta cần cấu hình lại
-        usernameField: 'email',
-        passwordField: 'password',
-        passReqToCallback: true // cho phép chúng ta gửi reqest lại hàm callback
+        usernameField: 'username',
+        passwordField: 'password'
     },
-        function (req, email, password, done) {
-            // asynchronous
-            // Hàm callback của nextTick chỉ được thực hiện khi hàm trên nó trong stack (LIFO) được thực hiện
-            // User.findOne sẽ không được gọi cho tới khi dữ liệu được gửi lại
-            process.nextTick(function () {
-                // Tìm một user theo email
-                // chúng ta kiểm tra xem user đã tồn tại hay không
-                User.findOne({ 'local.email': email }, function (err, user) {
-                    if (err)
-                        return done(err);
-                    if (user) {
-                        return done(null, false, req.flash('signupMessage', 'That email is already taken.'));
-                    } else {
-                        // Nếu chưa user nào sử dụng email này
-                        // tạo mới user
-                        var newUser = new User();
-                        // lưu thông tin cho tài khoản local
-                        newUser.local.email = email;
-                        newUser.local.password = newUser.generateHash(password);
-                        // lưu user
-                        newUser.save(function (err) {
-                            if (err)
-                                throw err;
-                            return done(null, newUser);
-                        });
-                    }
-                });
-            });
-        }));
+        function (username, password, done) {
 
+            UserModel.findOne({ 'local.username': username }, function (err, user) {
+                // console.log(user);
+                if (err)
+                    return done(err);
+                if (user) {
+                    return done(null, false);
+                } else {
+                    // Nếu chưa user nào sử dụng email này
+                    // tạo mới user
+                    var newUser = new UserModel();
+                    // lưu thông tin cho tài khoản local
+                    newUser.local.username = username;
+                    newUser.local.password = password;
+                    // lưu user
+                    newUser.save(function (err) {
+                        if (err)
+                            throw err;
+                        return done(null, newUser);
+                    });
+                }
+            });
+
+        }));
 
 }

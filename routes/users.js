@@ -1,17 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const UserModel = require('../models/User').UserModel;
+const UserModel = require('../models/User');
 const checkToken = require('../middleware/checkToken');
 
 router.get('/', checkToken, async (req, res, next) => {
   // res.send('respond with a resource');
   try {
-    const users = await UserModel.find();
-    console.log(users);
-    res.json(users)
+    if (req.type === 1) {
+      const users = await UserModel.find();
+      // console.log(users);
+      res.send(users)
+    } else {
+      res.json({
+        message: 'You can not use this feature'
+      })
+    }
+
   } catch (error) {
     console.log(error);
-    res.status(500).json(error)
+    res.status(500).send();
   }
 
 });
