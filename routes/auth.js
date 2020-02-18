@@ -15,14 +15,14 @@ router.post('/signup', async (req, res, next) => {
     // const { username, password } = req.body;
     passport.authenticate('local-signup', { session: false }, (err, user) => {
         if (err) throw err;
-        // console.log('user: ', user);
+        console.log('user: ', user);
         if (!user) {
             return res.json({
                 error: 'This user name has been used'
             });
         }
         const payload = {
-            _id: user._id
+            email: user.local.email
         }
         const verfyToken = jwt.sign(payload, 'verify_user');
         res.json({

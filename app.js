@@ -67,7 +67,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/auth', auth);
 app.use('/api', lessionRouter);
-app.use('/api',courseRouter)
+app.use('/api', courseRouter);
 
 // Multer upload img
 // Route này trả về cái form upload cho client
@@ -86,7 +86,7 @@ let diskStorage = multer.diskStorage({
     // Mình ví dụ chỉ cho phép tải lên các loại ảnh png & jpg
     let math = ["image/png", "image/jpeg"];
     if (math.indexOf(file.mimetype) === -1) {
-      
+
       let errorMess = `The file <strong>${file.originalname}</strong> is invalid. Only allowed to upload image jpeg or png.`;
       return callback(errorMess, null);
     }

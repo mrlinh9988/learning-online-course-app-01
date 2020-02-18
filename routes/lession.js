@@ -7,18 +7,18 @@ const LessionModel = require('../models/Lession');
 
 //show lession 
 router.get('/lession', async (req, res, next) => {
-      try {
-      const lession = await LessionModel.find();
-      console.log(lession);
-      res.json(lession)
-    } catch (error) {
-      console.log(error);
-      res.status(500).json(error)
-    }  
-  });
+  try {
+    const lession = await LessionModel.find();
+    console.log(lession);
+    res.json(lession)
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error)
+  }
+});
 
 //add lession 
-router.post('/lession',async (req, res) => {
+router.post('/lession', async (req, res) => {
 
 const LessionNew = await LessionModel(req.body);
   LessionNew
@@ -39,30 +39,32 @@ const LessionNew = await LessionModel(req.body);
         message: "Lỗi"
       });
     });
-
-
 });
 
 
 //update lession
-router.put('/lession/:id',async (req, res) =>{
+router.put('/lession/:id', async (req, res) => {
 
- await LessionModel.findByIdAndUpdate(req.params.id, {$set: req.body}, function (err,lession ) {
+  await LessionModel.findByIdAndUpdate(req.params.id, { $set: req.body }, function (err, lession) {
     if (err) return next(err);
-     res.json({ status: 200,
-      message: "lession udpated."});
+    res.json({
+      status: 200,
+      message: "lession udpated."
+    });
+  });
+
 });
 
-}  );
-
 //delete lession
-router.delete('/lession/:id',async (req, res) =>{
+router.delete('/lession/:id', async (req, res) => {
   await LessionModel.findByIdAndRemove(req.params.id, function (err) {
     if (err) return next(err);
-    res.json({ status: 200,
-      message: "Deleted successfully!"});
-})
-} );
-  
+    res.json({
+      status: 200,
+      message: "Deleted successfully!"
+    });
+  })
+});
+
 
 module.exports = router;

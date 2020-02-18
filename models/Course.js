@@ -13,7 +13,6 @@ var CourseSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'lession'
     }]
-
 }, {
     collection: 'course'
 });

@@ -5,7 +5,7 @@ var Schema = mongoose.Schema;
 // User Schema
 var UserSchema = new Schema({
     local: {
-        username: String,
+        email: String,
         password: String
     },
     facebook: {
@@ -14,7 +14,7 @@ var UserSchema = new Schema({
     },
     type: {
         type: Number,
-        default: 3
+        default: 1
     },
     isVerify: {
         type: String,
