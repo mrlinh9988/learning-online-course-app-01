@@ -1,4 +1,3 @@
-
 var FacebookStrategy = require('passport-facebook').Strategy;
 var UserModel = require('../models/User');
 const LocalStrategy = require('passport-local').Strategy;
@@ -12,13 +11,15 @@ module.exports = function (passport) {
     passport.use(new FacebookStrategy({
         clientID: 577997806089812,
         clientSecret: 'e8db94e14aac039db5b49736481e7e7b',
-        callbackURL: "https://a908b9c8.ngrok.io/auth/facebook/callback"
+        callbackURL: "https://92aa5581.ngrok.io/auth/facebook/callback"
     },
         async function (accessToken, refreshToken, profile, done) {
+            // console.log('alo');
+            // console.log(profile);
 
             try {
                 const user = await UserModel.findOne({ 'facebook.id': profile.id });
-                // console.log('user fb_id: ', user);
+                console.log('user fb_id: ', user);
                 if (user) {
                     done(null, profile.id);
                 } else {
@@ -26,7 +27,7 @@ module.exports = function (passport) {
                     const newUser = new UserModel();
                     newUser.facebook.id = profile.id;
                     newUser.facebook.name = profile.displayName;
-                    // console.log(newUser.facebook.id);
+                    console.log(newUser);
 
                     // lưu vào db
                     newUser.save(function (err) {
@@ -64,22 +65,22 @@ module.exports = function (passport) {
 
     // LOGIN LOCAL
     passport.use(new LocalStrategy({
-        usernameField: 'username',
+        usernameField: 'email',
         passwordField: 'password'
     },
-        async function (username, password, cb) {
-            console.log(username);
+        async function (email, password, cb) {
+            console.log(email);
             console.log(password);
             //this one is typically a DB call. Assume that the returned user object is pre-formatted and ready for storing in JWT
-            UserModel.findOne({ 'local.username': username }).lean()
+            UserModel.findOne({ 'local.email': email }).lean()
                 .then(async user => {
 
                     if (!user) {
-                        return cb(null, false, { message: 'Username not found' });
+                        return cb(null, false, { message: 'Email not found' });
                     }
 
                     const isMatch = await comparePassword(password, user.local.password);
- 
+
                     if (isMatch) {
                         return cb(null, user);
                     } else {
@@ -94,15 +95,18 @@ module.exports = function (passport) {
 
     // SIGNUP LOCAL
     passport.use('local-signup', new LocalStrategy({
-        usernameField: 'username',
+        usernameField: 'email',
         passwordField: 'password'
     },
-        function (username, password, done) {
+        function (email, password, done) {
+            console.log(email);
+            console.log(password);
 
-            UserModel.findOne({ 'local.username': username }, async function (err, user) {
-                // console.log(user);
+            UserModel.findOne({ 'local.email': email }, async function (err, user) {
+                console.log('find user: ', user);
                 if (err)
                     return done(err);
+
                 if (user) {
                     return done(null, false);
                 } else {
@@ -110,8 +114,9 @@ module.exports = function (passport) {
                     // tạo mới user
                     var newUser = new UserModel();
                     // lưu thông tin cho tài khoản local
-                    newUser.local.username = username;
+                    newUser.local.email = email;
                     newUser.local.password = await hashPassword(password);
+                    // newUser.local.email = await hashPassword(password);
                     // lưu user
                     newUser.save(function (err) {
                         if (err)

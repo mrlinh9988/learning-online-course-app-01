@@ -7,9 +7,15 @@ const session = require('express-session');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 
+const lessionRouter = require('./routes/lession');
+const courseRouter = require('./routes/course');
+
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const auth = require('./routes/auth');
+const uploadFile = require('./routes/uploadFile');
+
+
 const redis = require('redis');
 const redisClient = redis.createClient();
 const redisStore = require('connect-redis')(session);
@@ -57,7 +63,13 @@ app.use(passport.session());
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/auth', auth);
+app.use('/api', lessionRouter);
+app.use('/api', courseRouter);
+app.use('/upload', uploadFile);
 
+app.get('/', (req, res) => {
+  res.render('index');
+});
 
 app.get('/token', async (req, res, next) => {
   try {
@@ -67,10 +79,6 @@ app.get('/token', async (req, res, next) => {
     console.log(error);
   }
 });
-
-app.get('/abc', (req, res) => {
-  res.json(req.session.passport)
-})
 
 
 // catch 404 and forward to error handler

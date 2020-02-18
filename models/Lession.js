@@ -4,7 +4,11 @@ var Schema = mongoose.Schema;
 var LessionSchema = new Schema({
     title: String,
     content: String,
-    solution: String
+    solution: String,
+    course: {
+        type: String,
+        ref: 'course'
+    }
 }, {
     collection: 'lession'
 })

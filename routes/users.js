@@ -30,4 +30,10 @@ router.post('/signup', async (req, res, next) => {
   res.json(user);
 });
 
+router.get('/me', checkToken, (req, res) => {
+  console.log(req.user);
+  res.json(req.user)
+});
+
+
 module.exports = router;
