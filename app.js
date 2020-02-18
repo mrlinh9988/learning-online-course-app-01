@@ -11,6 +11,7 @@ const lessionRouter = require('./routes/lession');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const auth = require('./routes/auth');
+const courseRouter = require('./routes/course');
 
 require('./configs/passport')(passport);
 
@@ -40,6 +41,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/auth', auth);
 app.use('/api', lessionRouter);
+app.use('/api',courseRouter)
 
 
 app.get('/info', (req, res, next) => {
