@@ -37,7 +37,7 @@ router.post('/signup', async (req, res, next) => {
 router.post('/login', function (req, res, next) {
 
     passport.authenticate('local', { session: false }, (err, user, info) => {
-        // console.log('user: ', user);
+        console.log('user: ', user);
         console.log(err);
         if (err || !user) {
             return res.status(400).json({

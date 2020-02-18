@@ -9,7 +9,7 @@ module.exports = async function (req, res, next) {
     try {
 
         const token = req.headers.authorization.split(' ')[1];
-        console.log(token);
+        console.log('token: ', token);
 
 
         // check backlist token
@@ -35,25 +35,28 @@ module.exports = async function (req, res, next) {
             });
         }
 
-        // const user = await UserModel.findById(decode._id);
-        // const user = await UserModel.findOne({ 'facebook.id': decode.user });
-        const user = await UserModel.findOne({ $or: [{ '_id': decode._id }, { 'facebook.id': decode.user }] });
-        console.log('user1: ', user);
+        const userLocal = await UserModel.findById(decode._id);
+        const userFB = await UserModel.findOne({ 'facebook.id': decode.user });
 
+        console.log('userLocal: ', userLocal);
+        console.log('userFB: ', userFB);
 
-        if (!user) {
-            return res.status(404).json({
-                error: 'User not found'
-            });
+        // if (!userLocal || !userFB) {
+        //     return res.status(404).json({
+        //         error: 'User not found'
+        //     });
+        // }
+
+        if (userLocal) {
+            req.type = userLocal.type;
+            req.user = userLocal;
+            return next()
+        } else if (userFB) {
+            req.type = userFB.type;
+            req.user = userFB;
+            return next()
         }
 
-        req.type = user.type;
-        req.user = user;
-        next()
-
-        // console.log(user);
-        // res.json(user)
-        // next()
     } catch (error) {
         res.status(500).json({
             error: 'You need to login!'

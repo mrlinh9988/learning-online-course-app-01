@@ -6,6 +6,7 @@ const checkToken = require('../middleware/checkToken');
 router.get('/', checkToken, async (req, res, next) => {
   // res.send('respond with a resource');
   try {
+    console.log('type: ', req.type);
     if (req.type === 1) {
       const users = await UserModel.find();
       // console.log(users);
