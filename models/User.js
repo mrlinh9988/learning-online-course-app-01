@@ -35,6 +35,24 @@ var UserSchema = new Schema({
     collection: 'user'
 });
 
+// UserSchema.methods.hashPassword = async function () {
+//     const hash = await bcrypt.hash();
+// }
+
+// UserSchema.methods.toJSON = function () {
+
+//     // Chuyển dữ liệu dạng document của Mongoose thành raw object JS
+//     const userObject = this.toObject();
+
+//     // Xóa 2 thuộc tính của object 
+//     delete userObject.local.password;
+
+//     // Chú ý không save 
+//     // Vì không muốn trả về cho client thông tin về password và tokens nên mới không gửi theo 2 thuộc tính này
+
+//     return userObject;
+// }
+
 // UserSchema.methods.generateHash = async function (password) {
 //     // return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
 //     const salt = await bcrypt.genSalt(saltRounds);

@@ -9,59 +9,61 @@ module.exports = async function (req, res, next) {
     try {
         // check ID facebook
         const userId = await clientRedis.get('userId');
-        console.log(userId);
+        const id = jwt.verify(userId, 'userId');
+   
+        if (id) {
 
-        if (userId) {
             console.log('da dang nhap bang FB');
+            const user = await UserModel.findOne({ 'facebook.id': id.userId });
+            req.type = user.type
             return next();
-        }
-        // console.log('chua dang nhap bang FB');
 
-
-        // Check header token
-        if (!req.headers.authorization) {
-            return res.json({
-                error: 'You need to login!'
-            });
         }
 
         const token = req.headers.authorization.split(' ')[1];
+        if (token) {
+            console.log('token111111111: ', token);
 
-        // check backlist token
-        clientRedis.lrange('token', 0, -1, (err, result) => {
-            // console.log('backlist: ', result);
+            // check backlist token
+            clientRedis.lrange('token', 0, -1, (err, result) => {
+                // console.log('backlist: ', result);
 
-            if (result.includes(token)) {
-                console.log('ton tai trong blacklist');
-                return res.status(400).json({
-                    error: 'Invalid Token'
+                if (result.includes(token)) {
+                    console.log('ton tai trong blacklist');
+                    return res.status(400).json({
+                        error: 'Invalid Token'
+                    });
+                }
+            });
+            // console.log('token: ', token);
+            // decode token
+            const decode = await jwt.verify(token, 'your_jwt_secret');
+            // console.log('decode: ', decode);
+
+            if (!decode) {
+                return res.status(404).json({
+                    error: 'Not found'
                 });
             }
-        });
 
-        // decode token
-        const decode = await jwt.verify(token, 'your_jwt_secret');
+            const user = await UserModel.findById(decode._id);
+            // console.log('user1: ', user);
 
-        if (!decode) {
-            return res.status(404).json({
-                error: 'Not found'
-            });
+            if (!user) {
+                return res.status(404).json({
+                    error: 'User not found'
+                });
+            }
+
+            req.token = token;
+            req.type = user.type;
+            req.user = user;
+            return next();
         }
 
-        const user = await UserModel.findById(decode._id)
-
-        if (!user) {
-            return res.status(404).json({
-                error: 'User not found'
-            });
-        }
-
-        next()
-
-        // console.log(user);
-        // res.json(user)
-        // next()
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).json({
+            error: 'You need to login!'
+        });
     }
 }

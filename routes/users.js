@@ -7,9 +7,16 @@ const jwt = require('jsonwebtoken');
 router.get('/', checkToken, async (req, res, next) => {
   // res.send('respond with a resource');
   try {
-    const users = await UserModel.find();
-    console.log(users);
-    res.json(users)
+    if (req.type === 1) {
+      const users = await UserModel.find();
+      console.log('this is admin');
+      res.json(users);
+
+    } else {
+      res.json({
+        message: 'You are not allowed to use this feature'
+      })
+    }
   } catch (error) {
     console.log(error);
     res.status(500).json(error)
@@ -30,5 +37,11 @@ router.get('/verify', async (req, res, next) => {
     res.status(500);
   }
 });
+
+router.get('/me', checkToken, (req, res) => {
+  console.log(req.user);
+  res.json(req.user)
+});
+
 
 module.exports = router;

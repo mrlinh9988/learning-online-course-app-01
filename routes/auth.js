@@ -6,6 +6,7 @@ const clientRedis = require('../configs/clientRedis');
 const util = require('util');
 clientRedis.get = util.promisify(clientRedis.get);
 const UserModel = require('../models/User');
+const checkToken = require('../middleware/checkToken');
 
 
 // Local callback
@@ -15,7 +16,12 @@ router.post('/signup', async (req, res, next) => {
     // const { username, password } = req.body;
     passport.authenticate('local-signup', { session: false }, (err, user) => {
         if (err) throw err;
-        console.log('user: ', user._id);
+        console.log('user: ', user);
+        if (!user) {
+            return res.json({
+                message: 'User has been registered'
+            });
+        }
         const payload = {
             _id: user._id
         }
@@ -32,7 +38,7 @@ router.post('/signup', async (req, res, next) => {
 router.post('/login', function (req, res, next) {
 
     passport.authenticate('local', { session: false }, (err, user, info) => {
-        // console.log('user: ', user);
+        console.log('user1: ', user);
         console.log(err);
         if (err || !user) {
             return res.status(400).json({
@@ -55,16 +61,16 @@ router.post('/login', function (req, res, next) {
             const token = jwt.sign(payload, 'your_jwt_secret');
             // console.log(token);
 
-            return res.json({ token });
+            return res.status(200).json({ token });
         });
     })(req, res);
 
 });
 
 // Logout
-router.get('/logout', async function (req, res) {
+router.get('/logout', checkToken, async function (req, res) {
     req.logout();
-    const { userId } = req.query;
+    // const { userId } = req.query;
     try {
 
         // Logout facebook
@@ -77,16 +83,19 @@ router.get('/logout', async function (req, res) {
             });
         }
 
-        // Log out 
-        if (!req.headers.authorization) {
-            return res.json({
-                error: 'You need to login!'
-            });
-        }
+        // // Log out 
+        // if (!req.headers.authorization) {
+        //     return res.json({
+        //         error: 'You need to login!'
+        //     });
+        // }
 
-        const token = req.headers.authorization.split(' ')[1];
+        // const token = req.headers.authorization.split(' ')[1];
 
-        clientRedis.LPUSH('token', token, (err, backlist) => {
+        console.log(req.user);
+        console.log('token: ', req.token);
+
+        clientRedis.LPUSH('token', req.token, (err, backlist) => {
             if (err) throw err;
 
             console.log('backlist', backlist);
@@ -114,8 +123,9 @@ router.get('/facebook',
 
 router.get('/facebook/callback', (req, res, next) => {
     passport.authenticate('facebook', (err, user, next) => {
-        console.log('userid: ', typeof user.facebook.id);
-        clientRedis.set('userId', user.facebook.id);
+        // console.log('userid: ', typeof user.facebook.id);
+        const userIdToken = jwt.sign({ userId: user.facebook.id }, 'userId')
+        clientRedis.set('userId', userIdToken);
         // res.json({ userId: user.facebook.id });
         res.json({
             message: 'Login success'

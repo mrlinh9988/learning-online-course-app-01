@@ -10,7 +10,7 @@ module.exports = function (passport) {
     passport.use(new FacebookStrategy({
         clientID: 577997806089812,
         clientSecret: 'e8db94e14aac039db5b49736481e7e7b',
-        callbackURL: "https://3ded457a.ngrok.io/auth/facebook/callback"
+        callbackURL: "https://d524d91c.ngrok.io/auth/facebook/callback"
     },
         async function (accessToken, refreshToken, profile, done) {
 
@@ -70,7 +70,7 @@ module.exports = function (passport) {
             //this one is typically a DB call. Assume that the returned user object is pre-formatted and ready for storing in JWT
             UserModel.findOne({ 'local.username': username, 'local.password': password }).lean()
                 .then(user => {
-                    console.log('user find: ', user);
+                    // console.log('user find: ', user);
                     if (!user) {
                         return cb(null, false);
                     }

@@ -10,7 +10,7 @@ var CourseSchema = new Schema({
         default: 0
     },
     lession: [{
-        type: String,
+        type: String,   
         ref: 'lession'
     }]
 
