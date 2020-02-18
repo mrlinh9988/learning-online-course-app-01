@@ -5,6 +5,13 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const session = require('express-session');
 const passport = require('passport');
+
+
+
+const lessionRouter = require('./routes/lession');
+
+const courseRouter = require('./routes/course');
+
 const jwt = require('jsonwebtoken');
 
 const indexRouter = require('./routes/index');
@@ -14,6 +21,7 @@ const redis = require('redis');
 const redisClient = redis.createClient();
 const redisStore = require('connect-redis')(session);
 const multer = require('multer');
+
 
 
 require('./configs/passport')(passport);
@@ -58,6 +66,8 @@ app.use(passport.session());
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/auth', auth);
+app.use('/api', lessionRouter);
+app.use('/api',courseRouter)
 
 // Multer upload img
 // Route này trả về cái form upload cho client
