@@ -7,58 +7,54 @@ clientRedis.get = util.promisify(clientRedis.get);
 
 module.exports = async function (req, res, next) {
     try {
-        // check ID facebook
-        const userId = await clientRedis.get('userId');
-        const id = jwt.verify(userId, 'userId');
-   
-        if (id) {
-
-            console.log('da dang nhap bang FB');
-            const user = await UserModel.findOne({ 'facebook.id': id.userId });
-            req.type = user.type
-            return next();
-
-        }
 
         const token = req.headers.authorization.split(' ')[1];
-        if (token) {
-            console.log('token111111111: ', token);
+        console.log('token: ', token);
 
-            // check backlist token
-            clientRedis.lrange('token', 0, -1, (err, result) => {
-                // console.log('backlist: ', result);
 
-                if (result.includes(token)) {
-                    console.log('ton tai trong blacklist');
-                    return res.status(400).json({
-                        error: 'Invalid Token'
-                    });
-                }
+        // check backlist token
+        clientRedis.lrange('token', 0, -1, (err, result) => {
+            // console.log('backlist: ', result);
+
+            if (result.includes(token)) {
+                console.log('ton tai trong blacklist');
+                return res.status(400).json({
+                    error: 'Invalid Token'
+                });
+            }
+        });
+
+        // decode token
+        const decode = await jwt.verify(token, 'your_jwt_secret');
+        // const decode = await jwt.verify(token, 'userId');
+        console.log('decode: ', decode);
+
+        if (!decode) {
+            return res.status(404).json({
+                error: 'Not found'
             });
-            // console.log('token: ', token);
-            // decode token
-            const decode = await jwt.verify(token, 'your_jwt_secret');
-            // console.log('decode: ', decode);
+        }
 
-            if (!decode) {
-                return res.status(404).json({
-                    error: 'Not found'
-                });
-            }
+        const userLocal = await UserModel.findById(decode._id);
+        const userFB = await UserModel.findOne({ 'facebook.id': decode.user });
 
-            const user = await UserModel.findById(decode._id);
-            // console.log('user1: ', user);
+        console.log('userLocal: ', userLocal);
+        console.log('userFB: ', userFB);
 
-            if (!user) {
-                return res.status(404).json({
-                    error: 'User not found'
-                });
-            }
+        // if (!userLocal || !userFB) {
+        //     return res.status(404).json({
+        //         error: 'User not found'
+        //     });
+        // }
 
-            req.token = token;
-            req.type = user.type;
-            req.user = user;
-            return next();
+        if (userLocal) {
+            req.type = userLocal.type;
+            req.user = userLocal;
+            return next()
+        } else if (userFB) {
+            req.type = userFB.type;
+            req.user = userFB;
+            return next()
         }
 
     } catch (error) {

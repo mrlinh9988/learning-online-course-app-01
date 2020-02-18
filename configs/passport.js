@@ -1,7 +1,8 @@
-
 var FacebookStrategy = require('passport-facebook').Strategy;
 var UserModel = require('../models/User');
 const LocalStrategy = require('passport-local').Strategy;
+const hashPassword = require('../utils/hashPassword').hassPassword;
+const comparePassword = require('../utils/hashPassword').comparePassword;
 
 
 module.exports = function (passport) {
@@ -10,23 +11,21 @@ module.exports = function (passport) {
     passport.use(new FacebookStrategy({
         clientID: 577997806089812,
         clientSecret: 'e8db94e14aac039db5b49736481e7e7b',
-        callbackURL: "https://d524d91c.ngrok.io/auth/facebook/callback"
+        callbackURL: "https://3e798658.ngrok.io/auth/facebook/callback"
     },
         async function (accessToken, refreshToken, profile, done) {
 
             try {
-                console.log(profile);
-
                 const user = await UserModel.findOne({ 'facebook.id': profile.id });
-                // console.log('user fb_id: ', user);
+                console.log('user fb_id: ', user);
                 if (user) {
-                    done(null, user);
+                    done(null, profile.id);
                 } else {
                     console.log('khong co user fb');
                     const newUser = new UserModel();
                     newUser.facebook.id = profile.id;
                     newUser.facebook.name = profile.displayName;
-                    console.log(newUser.facebook.id);
+                    // console.log(newUser.facebook.id);
 
                     // lưu vào db
                     newUser.save(function (err) {
@@ -34,7 +33,7 @@ module.exports = function (passport) {
                             throw err;
                         // nếu thành công, trả lại user
                         console.log('new user: ', newUser);
-                        return done(null, newUser);
+                        return done(null, newUser.facebook.id);
                     });
                 }
 
@@ -47,14 +46,17 @@ module.exports = function (passport) {
 
     passport.serializeUser(function (user, done) {
         console.log('step serialize', user);
-        done(null, user.id);
+        done(null, user);
     });
 
-    passport.deserializeUser(function (id, done) {
-        console.log('step deserialize', id);
-        UserModel.findById(id, function (err, user) {
+    passport.deserializeUser(function (user, done) {
+        console.log('step deserialize', user);
+        UserModel.findOne({ 'facebook.id': user }, function (err, user) {
+            if (err) {
+                return done(err);
+            }
             console.log('user find: ', user);
-            done(err, user);
+            done(null, user);
         });
     });
 
@@ -68,13 +70,20 @@ module.exports = function (passport) {
             console.log(username);
             console.log(password);
             //this one is typically a DB call. Assume that the returned user object is pre-formatted and ready for storing in JWT
-            UserModel.findOne({ 'local.username': username, 'local.password': password }).lean()
-                .then(user => {
-                    // console.log('user find: ', user);
+            UserModel.findOne({ 'local.username': username }).lean()
+                .then(async user => {
+
                     if (!user) {
-                        return cb(null, false);
+                        return cb(null, false, { message: 'Username not found' });
                     }
-                    return cb(null, user);
+
+                    const isMatch = await comparePassword(password, user.local.password);
+ 
+                    if (isMatch) {
+                        return cb(null, user);
+                    } else {
+                        return cb(null, false, { message: 'Wrong password' });
+                    }
                 })
                 .catch(err => cb(err));
 
@@ -89,7 +98,7 @@ module.exports = function (passport) {
     },
         function (username, password, done) {
 
-            UserModel.findOne({ 'local.username': username }, function (err, user) {
+            UserModel.findOne({ 'local.username': username }, async function (err, user) {
                 // console.log(user);
                 if (err)
                     return done(err);
@@ -101,7 +110,7 @@ module.exports = function (passport) {
                     var newUser = new UserModel();
                     // lưu thông tin cho tài khoản local
                     newUser.local.username = username;
-                    newUser.local.password = password;
+                    newUser.local.password = await hashPassword(password);
                     // lưu user
                     newUser.save(function (err) {
                         if (err)
