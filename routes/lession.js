@@ -20,11 +20,7 @@ router.get('/lession', async (req, res, next) => {
 //add lession 
 router.post('/lession',async (req, res) => {
 
-const LessionNew = await LessionModel({
-    title: req.body.title,
-    content: req.body.content,
-    solution: req.body.solution
-  });
+const LessionNew = await LessionModel(req.body);
   LessionNew
     .save()
     .then(result => {
